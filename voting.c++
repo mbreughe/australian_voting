@@ -1,15 +1,29 @@
 #include <iostream>
 #include <string>
 #include <map>
-#include <queue>
+#include <deque>
 #include <sstream>
+#include <algorithm>
+#include <utility>
 using namespace std;
 
-typedef queue<unsigned int> Vote;
+typedef deque<unsigned int> Vote;
 
 pair<unsigned int, Vote> parse_vote(string s, unsigned int num_candidates){
+    istringstream line(s);
+    Vote vote;
+    for(unsigned int i=0; i < num_candidates; i++){
+        unsigned int cand;
+        line >> cand;
+        vote.push_back(cand);
+    }
+    return make_pair(vote.front(), vote);
+}
 
-    return make_pair(0, queue<unsigned int>());
+void eval_votes(multimap<unsigned int, Vote> & votes, unsigned int num_cands){
+    for(int i=1; i <= num_cands; i++){
+        cout << i << ": " << votes.count(i) << endl;
+    }
 }
 
 void solve_case(istream& input){
@@ -29,11 +43,16 @@ void solve_case(istream& input){
         name_mapping[j] = s;
     }
     
+    // Create a multimap of votes
+    multimap<unsigned int, Vote> votes;
     // As long as there is input and we don't see a newline
     while (getline(cin, s) && s != "\n"){
         // Create a ballot
-        pair<unsigned int, Vote> vote = parse_vote(s, num_candidates);        
+        pair<unsigned int, Vote> vote = parse_vote(s, num_candidates);
+        votes.insert(vote);
     }
+
+    eval_votes(votes, num_candidates);
 }
 
 int main(){

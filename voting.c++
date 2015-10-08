@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include <queue>
+#include <sstream>
 using namespace std;
 
 typedef queue<unsigned int> Vote;
@@ -12,17 +13,25 @@ pair<unsigned int, Vote> parse_vote(string s, unsigned int num_candidates){
 }
 
 void solve_case(istream& input){
-    unsigned int num_candidates;
-    input >> num_candidates;
-    map<unsigned int, string> name_mapping;
-
     string s;
+    
+    // We wrap a stringstream around, so we can use
+    // getline --> this flushes until the next newline
+    getline(input, s);
+    istringstream line(s);
+    unsigned int num_candidates;
+    line >> num_candidates;
+
+    // Build name mapping
+    map<unsigned int, string> name_mapping;
     for (unsigned int j=1; j <= num_candidates; j++){
         getline(input, s);
-        name_mapping[1] = s;
+        name_mapping[j] = s;
     }
+    
     // As long as there is input and we don't see a newline
     while (getline(cin, s) && s != "\n"){
+        // Create a ballot
         pair<unsigned int, Vote> vote = parse_vote(s, num_candidates);        
     }
 }

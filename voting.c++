@@ -20,14 +20,18 @@ pair<unsigned int, Vote> parse_vote(string s, unsigned int num_candidates){
     return make_pair(vote.front(), vote);
 }
 
-struct CompareSecond{
+struct CompareSecondMin{
     bool operator()(const pair<unsigned int, unsigned int>& left, const pair<unsigned int, unsigned int>& right) const{
         return left.second < right.second;
     }
 };
+struct CompareSecondMax{
+    bool operator()(const pair<unsigned int, unsigned int>& left, const pair<unsigned int, unsigned int>& right) const{
+        return left.second > right.second;
+    }
+};
 
-void remove_worst_cand(multimap<unsigned int, Vote> & votes, map<unsigned int, unsigned int> & vote_count){
-    unsigned int min_cand =  min_element(vote_count.begin(), vote_count.end(), CompareSecond())->first;
+void remove_cand(multimap<unsigned int, Vote> & votes, unsigned int min_cand){
 
     // First change the key of the votes for the worst candidate
     //  Duplicate the elements for the losing candidate, but with 
@@ -56,7 +60,9 @@ void remove_worst_cand(multimap<unsigned int, Vote> & votes, map<unsigned int, u
             }
         }
     }
-  
+ 
+    /*
+    // Print votes 
     for(auto it = votes.begin() ; it!=votes.end(); ++it){
         cout << it->first << " : ";
         for (auto it_2 = it->second.begin(); it_2 != it->second.end(); ++it_2){
@@ -64,19 +70,76 @@ void remove_worst_cand(multimap<unsigned int, Vote> & votes, map<unsigned int, u
         } 
         cout << endl;
     }
+    */
 }
 
-void eval_votes(multimap<unsigned int, Vote> & votes, unsigned int num_cands){
+vector<unsigned int> get_remaining_candidates(const multimap<unsigned int, Vote> & votes){
+    vector<unsigned int> remainder;
+    for( auto it = votes.begin(), end = votes.end();
+           it != end;
+           it = votes.upper_bound(it->first)){
+        
+        remainder.push_back(it->first);
+
+    }
+    return remainder;
+}
+
+vector <unsigned int> get_tie_candiates(const map<unsigned int, unsigned int> & vote_count, unsigned int num_votes){
+    vector <unsigned int> candidates;
+    for(auto it = vote_count.begin(); it != vote_count.end(); ++it){
+        if (it->second == num_votes){
+//            cout << "Candidate " << it->first << "has score" << num_votes << endl;
+            candidates.push_back(it->first);
+        }
+    }
+    return candidates;
+}
+
+vector<unsigned int> eval_votes(multimap<unsigned int, Vote> & votes, unsigned int num_cands){
     map<unsigned int, unsigned int> vote_count;
     for(int i=1; i <= num_cands; i++){
         vote_count[i] = 0;
     }
+    
+    unsigned int num_voters = votes.size();
 
-    for(int i=1; i <= num_cands; i++){
-        vote_count[i] = votes.count(i);
+    while(true){
+        // Remove the latest counting
+        vote_count.clear();
+    
+        // Collect the remaining candidates
+        vector<unsigned int> remaining_cands = get_remaining_candidates(votes);
+        unsigned int num_remaining_cands = remaining_cands.size();
+        // Count votes for the remaining candidates
+        for(auto &el: remaining_cands){
+            vote_count[el] = votes.count(el);
+            cout << vote_count[el] << endl;
+        }
+
+        unsigned int max_vote_count =  min_element(vote_count.begin(), vote_count.end(), CompareSecondMax())->second;
+        vector<unsigned int> tie_candidates = get_tie_candiates(vote_count, max_vote_count);
+
+        cout << "Max vote count = " << max_vote_count << endl;
+        // Break in case we have a single winner
+        if (max_vote_count >= (unsigned int)(0.5f * num_voters)){
+            return tie_candidates;
+        }
+
+        // Break in case all remaining candidates tie
+        if(tie_candidates.size() == num_remaining_cands){
+            return tie_candidates;
+        }
+        
+        // Remove candidates with the lowest vote
+        unsigned int min_vote_count =  min_element(vote_count.begin(), vote_count.end(), CompareSecondMin())->second;
+        vector<unsigned int> candidates = get_tie_candiates(vote_count, min_vote_count);
+        for (auto it = candidates.begin(); it != candidates.end(); ++it){
+            cout << "Removing " << *it << endl;
+            remove_cand(votes, *it);  
+        }
+       
     }
-
-    remove_worst_cand(votes, vote_count);
 }
 
 void solve_case(istream& input){
@@ -105,7 +168,10 @@ void solve_case(istream& input){
         votes.insert(vote);
     }
 
-    eval_votes(votes, num_candidates);
+    vector<unsigned int> winners = eval_votes(votes, num_candidates);
+    for (auto it = winners.begin(); it != winners.end(); ++it){
+        cout << name_mapping[*it] << endl;
+    }
 }
 
 int main(){

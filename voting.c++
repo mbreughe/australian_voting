@@ -61,16 +61,15 @@ void remove_cand(multimap<unsigned int, Vote> & votes, unsigned int min_cand){
         }
     }
  
-    /*
-    // Print votes 
+}
+void print_votes(multimap<unsigned int, Vote> & votes){
     for(auto it = votes.begin() ; it!=votes.end(); ++it){
-        cout << it->first << " : ";
+        cout << "votes[" << it->first << "] = ";
         for (auto it_2 = it->second.begin(); it_2 != it->second.end(); ++it_2){
             cout << *it_2;
         } 
         cout << endl;
     }
-    */
 }
 
 vector<unsigned int> get_remaining_candidates(const multimap<unsigned int, Vote> & votes){
@@ -106,7 +105,9 @@ vector<unsigned int> eval_votes(multimap<unsigned int, Vote> & votes, unsigned i
     while(true){
         // Remove the latest counting
         vote_count.clear();
-    
+  
+        //print_votes(votes); 
+        
         // Collect the remaining candidates
         vector<unsigned int> remaining_cands = get_remaining_candidates(votes);
         unsigned int num_remaining_cands = remaining_cands.size();
@@ -117,8 +118,6 @@ vector<unsigned int> eval_votes(multimap<unsigned int, Vote> & votes, unsigned i
 
         unsigned int max_vote_count =  min_element(vote_count.begin(), vote_count.end(), CompareSecondMax())->second;
         vector<unsigned int> tie_candidates = get_tie_candiates(vote_count, max_vote_count);
-        for(auto cand: tie_candidates){
-        }
 
         // Break in case we have a single winner
         unsigned int votes_required = (unsigned int)(0.5f * num_voters) + 1;
@@ -141,12 +140,20 @@ vector<unsigned int> eval_votes(multimap<unsigned int, Vote> & votes, unsigned i
     }
 }
 
+bool has_only_whitespace(string s){
+    return (s.find_first_not_of(' ') == std::string::npos);
+}
+
 void solve_case(istream& input){
     string s;
     
-    // We wrap a stringstream around, so we can use
+    // We wrap a stringstream around input , so we can use
     // getline --> this flushes until the next newline
-    getline(input, s);
+    
+    // Remove all whitelines at beginning
+    while(getline(input, s) && has_only_whitespace(s)){
+        ;
+    }
     istringstream line(s);
     unsigned int num_candidates;
     line >> num_candidates;
@@ -161,7 +168,7 @@ void solve_case(istream& input){
     // Create a multimap of votes
     multimap<unsigned int, Vote> votes;
     // As long as there is input and we don't see a newline
-    while (getline(cin, s) && s != "\n"){
+    while (getline(cin, s) && !has_only_whitespace(s)){
         // Create a ballot
         pair<unsigned int, Vote> vote = parse_vote(s, num_candidates);
         votes.insert(vote);
@@ -178,7 +185,6 @@ int main(){
     cin >> num_cases;
 
     string s;
-    getline(cin, s);    // get the first blank line
 
     for (unsigned int i=0; i < num_cases; i++){
         solve_case(cin);

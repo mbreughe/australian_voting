@@ -89,7 +89,6 @@ vector <unsigned int> get_tie_candiates(const map<unsigned int, unsigned int> & 
     vector <unsigned int> candidates;
     for(auto it = vote_count.begin(); it != vote_count.end(); ++it){
         if (it->second == num_votes){
-//            cout << "Candidate " << it->first << "has score" << num_votes << endl;
             candidates.push_back(it->first);
         }
     }
@@ -114,15 +113,16 @@ vector<unsigned int> eval_votes(multimap<unsigned int, Vote> & votes, unsigned i
         // Count votes for the remaining candidates
         for(auto &el: remaining_cands){
             vote_count[el] = votes.count(el);
-            cout << vote_count[el] << endl;
         }
 
         unsigned int max_vote_count =  min_element(vote_count.begin(), vote_count.end(), CompareSecondMax())->second;
         vector<unsigned int> tie_candidates = get_tie_candiates(vote_count, max_vote_count);
+        for(auto cand: tie_candidates){
+        }
 
-        cout << "Max vote count = " << max_vote_count << endl;
         // Break in case we have a single winner
-        if (max_vote_count >= (unsigned int)(0.5f * num_voters)){
+        unsigned int votes_required = (unsigned int)(0.5f * num_voters) + 1;
+        if (max_vote_count >= votes_required){
             return tie_candidates;
         }
 
@@ -135,7 +135,6 @@ vector<unsigned int> eval_votes(multimap<unsigned int, Vote> & votes, unsigned i
         unsigned int min_vote_count =  min_element(vote_count.begin(), vote_count.end(), CompareSecondMin())->second;
         vector<unsigned int> candidates = get_tie_candiates(vote_count, min_vote_count);
         for (auto it = candidates.begin(); it != candidates.end(); ++it){
-            cout << "Removing " << *it << endl;
             remove_cand(votes, *it);  
         }
        

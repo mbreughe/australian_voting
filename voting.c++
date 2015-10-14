@@ -188,5 +188,8 @@ int main(){
 
     for (unsigned int i=0; i < num_cases; i++){
         solve_case(cin);
+        if (i != num_cases-1){
+            cout << endl;
+        }
     }
 }
